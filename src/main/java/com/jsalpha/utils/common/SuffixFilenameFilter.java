@@ -10,6 +10,9 @@ import java.io.FilenameFilter;
 public class SuffixFilenameFilter implements FilenameFilter {
     private String endWith = ".class";
 
+    public SuffixFilenameFilter() {
+    }
+
     public SuffixFilenameFilter(String endWith) {
         this.endWith = endWith;
     }
