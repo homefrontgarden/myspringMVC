@@ -5,7 +5,7 @@ import java.io.FileFilter;
 
 /**
  * @author dengjingsi
- * 目录文件过滤器，过滤指定目录下的文件
+ * 目录文件过滤器，过滤指定路径下的目录
  */
 public class DirectoryFileFilter implements FileFilter {
     @Override

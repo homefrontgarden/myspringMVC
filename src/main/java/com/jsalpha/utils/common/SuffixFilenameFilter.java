@@ -10,9 +10,16 @@ import java.io.FilenameFilter;
 public class SuffixFilenameFilter implements FilenameFilter {
     private String endWith = ".class";
 
+    /**
+     * 构建默认扫描.class后缀的文件过滤器
+     */
     public SuffixFilenameFilter() {
     }
 
+    /**
+     * 构建扫描endWith后缀的文件过滤器
+     * @param endWith
+     */
     public SuffixFilenameFilter(String endWith) {
         this.endWith = endWith;
     }
