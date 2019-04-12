@@ -7,6 +7,10 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * @author dengjingsi
+ * 加载指定包下的类的工具类
+ */
 public class ClassOfPackageLoader {
 
     /**
@@ -31,17 +35,18 @@ public class ClassOfPackageLoader {
      * @param classes 供存储类名的变量
      * @throws ClassNotFoundException
      */
-    public void collectClassOfPackageInner(String path,String packageName,LinkedList<String> classes) throws ClassNotFoundException {
+    public void collectClassOfPackageInner(String path,String packageName,LinkedList<String> classes){
         String packagePath = packageName.replace(".",File.separator);
         File f = new File(path+File.separator+packagePath);
         String[] fileNames = null;
         if(f.exists()){
-            //获取该包下所有的.class类文件
+            //获取该路径下所有的.class类文件
             fileNames = f.list(new SuffixFilenameFilter());
             for(String classFileName : fileNames){
                 classFileName = classFileName.substring(0,classFileName.length()-6);
                 classes.add(packageName+"."+classFileName);
             }
+            //获取该路径下的所有目录
             File[] files = f.listFiles(new DirectoryFileFilter());
             for(File file : files){
                 collectClassOfPackageInner(path,packageName+"."+file.getName(),classes);
