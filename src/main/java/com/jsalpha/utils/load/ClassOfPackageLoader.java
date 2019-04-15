@@ -74,8 +74,15 @@ public class ClassOfPackageLoader {
     public Class<?> loadClass(String className) throws ClassNotFoundException {
         return this.getClass().getClassLoader().loadClass(className);
     }
+
+
     public static void main(String[] args) throws ClassNotFoundException{
+        /**
+         * 测试
+         * 注意：如果你的测试结果报ClassNotFoundException异常，请检查你的classPath参数对应的路径下有没有指定的包
+         */
         ClassOfPackageLoader myClassLoader = new ClassOfPackageLoader();
+        //下边是我测试的包所在绝对地址和包名
         myClassLoader.loadInnerClassOfpackage("/Users/iyunxiao/IdeaProjects/utils/target/classes","com.jsalpha.utils");
     }
 }
