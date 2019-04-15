@@ -1,5 +1,7 @@
 package com.jsalpha.utils.servlet;
 
+import com.jsalpha.utils.utils.ClassOfPackageLoader;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -8,9 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 在DispatcherServlet类中，实现下面几个步骤：
@@ -22,10 +22,70 @@ import java.util.Map;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
-    List<String> classNames;
-//    Map<String,Object> pathMethod;
-    Map<String,MethodInfo> pathMethod;
-    Map<String,Object> beans;
+    private String path ="E:\\IdeaProjects\\hand_mvc\\target\\classes";
+    /**
+     * 扫描到的所有类名
+     */
+    private LinkedList<String> classNames;
+    /**
+     * 类名对应的对象
+     */
+    private Map<String,Object> beans = new HashMap<>();
+    private Map<String,Method> handlerMap = new HashMap<>();
+    Map<String,Object> pathMethod;
+//    Map<String,MethodInfo> pathMethod;
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        System.out.println("init()............");
+
+        // 1.扫描需要的实例化的类
+        try {
+            doScanPackage("com.djs.custom");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println("当前文件下所有的class类.......");
+        for(String name: classNames) {
+            System.out.println(name);
+        }
+
+//        // 2.实例化
+        try {
+            doInstance();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println("当前实例化的对象信息.........");
+        for(Map.Entry<String, Object> map: beans.entrySet()) {
+            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
+        }
+
+        // 3.将IOC容器中的service对象设置给controller层定义的field上
+//        doIoc();
+
+        // 4.建立path与method的映射关系
+        handlerMapping();
+        System.out.println("Controller层的path和方法映射.........");
+//        for(Map.Entry<String, Object> map: handlerMap.entrySet()) {
+//            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
+//        }
+        for(Map.Entry<String, Method> map: handlerMap.entrySet()) {
+            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
+        }
+    }
+    /**
+     * 实例化扫描到的类
+     */
+    public void doInstance() throws ClassNotFoundException {
+        for(String className : classNames){
+            beans.put(className,Class.forName(className));
+        }
+    }
+    public void doScanPackage(String packageName) throws ClassNotFoundException {
+        ClassOfPackageLoader classOfPackageLoader = new ClassOfPackageLoader();
+        classNames = new LinkedList<>();
+        classOfPackageLoader.collectClassOfPackageInner(path,packageName,classNames);
+    }
     public void handlerMapping(){
         Method[] methods = null;
         Object leader;
@@ -41,12 +101,13 @@ public class DispatcherServlet extends HttpServlet {
     public void setPathMethod(List<Method> methods){
         MyRequestMapping annotation;
         String url;
-        String type;
+//        String type;
         for(Method method : methods){
             annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
             url = annotation.value();
-            type = annotation.method();
-            method.
+//            type = annotation.method();
+////            method.
+            pathMethod.put(url,method);
         }
     }
 
@@ -61,35 +122,6 @@ public class DispatcherServlet extends HttpServlet {
         }
         return methodList;
     }
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        System.out.println("init()............");
-
-        // 1.扫描需要的实例化的类
-//        doScanPackage("com.djs.custom");
-        System.out.println("当前文件下所有的class类.......");
-        for(String name: classNames) {
-            System.out.println(name);
-        }
-
-//        // 2.实例化
-//        doInstance();
-//        System.out.println("当前实例化的对象信息.........");
-//        for(Map.Entry<String, Object> map: beans.entrySet()) {
-//            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
-//        }
-
-        // 3.将IOC容器中的service对象设置给controller层定义的field上
-//        doIoc();
-
-        // 4.建立path与method的映射关系
-//        handlerMapping();
-//        System.out.println("Controller层的path和方法映射.........");
-//        for(Map.Entry<String, Object> map: handlerMap.entrySet()) {
-//            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
-//        }
-    }
-
     /**
      * 每一次请求将会调用doGet或doPost方法，它会根据url请求去HandlerMapping中匹配到对应的Method，然后利用反射机制调用Controller中的url对应的方法，并得到结果返回。按顺序包括以下功能：
      *
@@ -125,7 +157,7 @@ public class DispatcherServlet extends HttpServlet {
         String path = uri.replaceAll(context, "");
 
         // 通过当前的path获取handlerMap的方法名
-//        Method method = (Method) handlerMap.get(path);
+        Method method = (Method) handlerMap.get(path);
 //        // 获取beans容器中的bean
 //        MyController instance = (MyController) beans.get("/" + path.split("/")[1]);
 //
