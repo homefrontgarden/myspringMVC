@@ -7,8 +7,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -22,8 +26,8 @@ import java.util.*;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
-//    private String path ="E:\\IdeaProjects\\hand_mvc\\target\\classes";
-    private String path ="/Users/iyunxiao/IdeaProjects/utils/target/classes";
+    private String path ="E:\\IdeaProjects\\poster\\target\\classes";
+//    private String path ="/Users/iyunxiao/IdeaProjects/utils/target/classes";
     /**
      * 扫描到的所有类名
      */
@@ -35,8 +39,22 @@ public class DispatcherServlet extends HttpServlet {
     private Map<String,Object> beans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
     Map<String,Object> pathMethod;
+    public void run(ServletConfig config){
+        Enumeration e = config.getInitParameterNames();
+        List<String> params = new ArrayList<>();
+        while(e.hasMoreElements()){
+            params.add(e.nextElement().toString());
+        }
+        for(String param : params){
+        String s = config.getInitParameter(param);
+        System.out.println(s);
+        }
+    }
     @Override
     public void init(ServletConfig config) throws ServletException {
+        String path2 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
+        String path3 = new File("/").getPath();
+        run(config);
         System.out.println("init()............");
 
         // 1.扫描需要的实例化的类
@@ -96,11 +114,6 @@ public class DispatcherServlet extends HttpServlet {
         Object leader;
         Method method;
         List<Object> params;
-//        for(Map.Entry<String,Object> entry : beans.entrySet()){
-//            leader = entry.getValue();
-//            Class<?> c = leader.getClass();
-//            methods = c.getMethods();
-//        }
         for(Class c : classes){
             methods = c.getMethods();
         }
@@ -168,6 +181,20 @@ public class DispatcherServlet extends HttpServlet {
 
         // 通过当前的path获取handlerMap的方法名
         Method method = (Method) handlerMap.get(path);
+        String s =null;
+        try {
+            s = (String) method.invoke(method.getDeclaringClass().newInstance(),null);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());
+        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+        bufferedWriter.write(s);
+        bufferedWriter.flush();
 //        // 获取beans容器中的bean
 //        MyController instance = (MyController) beans.get("/" + path.split("/")[1]);
 //
