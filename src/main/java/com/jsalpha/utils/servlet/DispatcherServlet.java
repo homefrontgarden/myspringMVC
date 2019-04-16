@@ -22,11 +22,13 @@ import java.util.*;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
-    private String path ="E:\\IdeaProjects\\hand_mvc\\target\\classes";
+//    private String path ="E:\\IdeaProjects\\hand_mvc\\target\\classes";
+    private String path ="/Users/iyunxiao/IdeaProjects/utils/target/classes";
     /**
      * 扫描到的所有类名
      */
     private LinkedList<String> classNames;
+    private List<Class<?>> classes;
     /**
      * 类名对应的对象
      */
@@ -84,15 +86,23 @@ public class DispatcherServlet extends HttpServlet {
         ClassOfPackageLoader classOfPackageLoader = new ClassOfPackageLoader();
         classNames = new LinkedList<>();
         classOfPackageLoader.collectClassOfPackageInner(path,packageName,classNames);
+        classes = new ArrayList<>(classNames.size());
+        for(String className : classNames){
+            classes.add(classOfPackageLoader.loadClass(className));
+        }
     }
     public void handlerMapping(){
         Method[] methods = null;
         Object leader;
         Method method;
         List<Object> params;
-        for(Map.Entry<String,Object> entry : beans.entrySet()){
-            leader = entry.getValue();
-            methods = leader.getClass().getMethods();
+//        for(Map.Entry<String,Object> entry : beans.entrySet()){
+//            leader = entry.getValue();
+//            Class<?> c = leader.getClass();
+//            methods = c.getMethods();
+//        }
+        for(Class c : classes){
+            methods = c.getMethods();
         }
         List<Method> methodList = filterReuqestMethod(methods);
         setPathMethod(methodList);
@@ -103,7 +113,7 @@ public class DispatcherServlet extends HttpServlet {
         for(Method method : methods){
             annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
             url = annotation.value();
-            pathMethod.put(url,method);
+            handlerMap.put(url,method);
         }
     }
 
@@ -111,7 +121,11 @@ public class DispatcherServlet extends HttpServlet {
         List<Method> methodList = new ArrayList<>();
         Annotation annotation;
         for(Method method : methods){
-            annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
+            if(method.getName().equals("getSay")){
+                System.out.println(method.getName());
+            }
+            System.out.println(method.getName());
+            annotation = method.getAnnotation(MyRequestMapping.class);
             if(null != annotation){
                 methodList.add(method);
             }
