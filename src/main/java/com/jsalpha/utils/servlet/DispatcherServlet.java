@@ -33,14 +33,13 @@ public class DispatcherServlet extends HttpServlet {
     private Map<String,Object> beans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
     Map<String,Object> pathMethod;
-//    Map<String,MethodInfo> pathMethod;
     @Override
     public void init(ServletConfig config) throws ServletException {
         System.out.println("init()............");
 
         // 1.扫描需要的实例化的类
         try {
-            doScanPackage("com.djs.custom");
+            doScanPackage("com.jsalpha.utils.controller");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -101,12 +100,9 @@ public class DispatcherServlet extends HttpServlet {
     public void setPathMethod(List<Method> methods){
         MyRequestMapping annotation;
         String url;
-//        String type;
         for(Method method : methods){
             annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
             url = annotation.value();
-//            type = annotation.method();
-////            method.
             pathMethod.put(url,method);
         }
     }
