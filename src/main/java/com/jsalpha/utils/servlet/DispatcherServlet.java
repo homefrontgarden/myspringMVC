@@ -8,12 +8,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -26,8 +26,6 @@ import java.util.*;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
-    private String path ="E:\\IdeaProjects\\poster\\target\\classes";
-//    private String path ="/Users/iyunxiao/IdeaProjects/utils/target/classes";
     /**
      * 扫描到的所有类名
      */
@@ -53,7 +51,7 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         String path2 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
-        String path3 = new File("/").getPath();
+//        String path3 = new File("/").getPath();
         run(config);
         System.out.println("init()............");
 
@@ -67,7 +65,6 @@ public class DispatcherServlet extends HttpServlet {
         for(String name: classNames) {
             System.out.println(name);
         }
-
 //        // 2.实例化
         try {
             doInstance();
@@ -85,9 +82,6 @@ public class DispatcherServlet extends HttpServlet {
         // 4.建立path与method的映射关系
         handlerMapping();
         System.out.println("Controller层的path和方法映射.........");
-//        for(Map.Entry<String, Object> map: handlerMap.entrySet()) {
-//            System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
-//        }
         for(Map.Entry<String, Method> map: handlerMap.entrySet()) {
             System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
         }
@@ -101,6 +95,7 @@ public class DispatcherServlet extends HttpServlet {
         }
     }
     public void doScanPackage(String packageName) throws ClassNotFoundException {
+        String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
         ClassOfPackageLoader classOfPackageLoader = new ClassOfPackageLoader();
         classNames = new LinkedList<>();
         classOfPackageLoader.collectClassOfPackageInner(path,packageName,classNames);
@@ -111,9 +106,6 @@ public class DispatcherServlet extends HttpServlet {
     }
     public void handlerMapping(){
         Method[] methods = null;
-        Object leader;
-        Method method;
-        List<Object> params;
         for(Class c : classes){
             methods = c.getMethods();
         }
@@ -134,10 +126,6 @@ public class DispatcherServlet extends HttpServlet {
         List<Method> methodList = new ArrayList<>();
         Annotation annotation;
         for(Method method : methods){
-            if(method.getName().equals("getSay")){
-                System.out.println(method.getName());
-            }
-            System.out.println(method.getName());
             annotation = method.getAnnotation(MyRequestMapping.class);
             if(null != annotation){
                 methodList.add(method);
@@ -175,12 +163,12 @@ public class DispatcherServlet extends HttpServlet {
         // 通过req获取请求的uri /maven_handmvc/custom/query
         String uri = req.getRequestURI();
 
-        // /maven_handmvc
+        // /maven_handmvc 替换掉项目目录
         String context = req.getContextPath();
         String path = uri.replaceAll(context, "");
 
         // 通过当前的path获取handlerMap的方法名
-        Method method = (Method) handlerMap.get(path);
+        Method method = handlerMap.get(path);
         String s =null;
         try {
             s = (String) method.invoke(method.getDeclaringClass().newInstance(),null);
@@ -191,7 +179,7 @@ public class DispatcherServlet extends HttpServlet {
         } catch (InstantiationException e) {
             e.printStackTrace();
         }
-         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
         bufferedWriter.write(s);
         bufferedWriter.flush();
@@ -213,9 +201,11 @@ public class DispatcherServlet extends HttpServlet {
 //            e.printStackTrace();
 //        }
     }
-//    private void doScanPackage(String packageName){
-//        String
-//        File packageFile = new File(packageName);
-//        packageFile.
-//    }
+    public static void main(String[] args){
+        Thread thread = Thread.currentThread();
+        ClassLoader classLoader = thread.getContextClassLoader();
+        URL url = classLoader.getResource("");
+        String path = url.getPath();
+        System.out.println(path);
+    }
 }
