@@ -13,6 +13,7 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.*;
 
@@ -36,7 +37,6 @@ public class DispatcherServlet extends HttpServlet {
      */
     private Map<String,Object> beans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
-    Map<String,Object> pathMethod;
     public void run(ServletConfig config){
         Enumeration e = config.getInitParameterNames();
         List<String> params = new ArrayList<>();
@@ -50,8 +50,6 @@ public class DispatcherServlet extends HttpServlet {
     }
     @Override
     public void init(ServletConfig config) throws ServletException {
-        String path2 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
-//        String path3 = new File("/").getPath();
         run(config);
         System.out.println("init()............");
 
@@ -169,6 +167,7 @@ public class DispatcherServlet extends HttpServlet {
 
         // 通过当前的path获取handlerMap的方法名
         Method method = handlerMap.get(path);
+        getParams(method,req);
         String s =null;
         try {
             s = (String) method.invoke(method.getDeclaringClass().newInstance(),null);
@@ -200,6 +199,19 @@ public class DispatcherServlet extends HttpServlet {
 //        } catch (InvocationTargetException e) {
 //            e.printStackTrace();
 //        }
+    }
+    public Object[] getParams(Method method, HttpServletRequest req){
+        Object[] params;
+        Type[] types = method.getGenericParameterTypes();
+        Annotation[][] annotations = method.getParameterAnnotations();
+        if(types.length>0){
+            for(Type type : types){
+                String t = type.getTypeName();
+                System.out.println(t);
+                System.out.println(t.getClass());
+            }
+        }
+        return new Object[0];
     }
     public static void main(String[] args){
         Thread thread = Thread.currentThread();
