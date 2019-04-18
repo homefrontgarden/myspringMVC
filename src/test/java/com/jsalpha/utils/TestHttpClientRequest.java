@@ -29,6 +29,7 @@ public class TestHttpClientRequest {
         try {
             Map<String,String> param = new HashMap<>();
             param.put("1","dengjignsi");
+            param.put("s","gansha");
             String body = "请求体";
             data = httpClientRequest.postJson("http://localhost:8686/hello",param,body);
             System.out.println(data);
