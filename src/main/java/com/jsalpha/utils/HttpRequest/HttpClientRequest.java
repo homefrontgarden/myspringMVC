@@ -136,7 +136,7 @@ public class HttpClientRequest {
      * @throws IOException
      */
     private String request(String url, Map<String,String> param, String method, String body, String contentType) throws IOException {
-        url = getUrl(url,param);
+//        url = getUrl(url,param);
         HttpUriRequest httpUriRequest = getRequest(url,method,param);
         CloseableHttpClient httpClient = HttpClients.createDefault();
         if (contentType != null) {
