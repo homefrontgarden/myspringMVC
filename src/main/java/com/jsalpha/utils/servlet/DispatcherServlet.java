@@ -1,5 +1,8 @@
 package com.jsalpha.utils.servlet;
 
+import com.jsalpha.utils.common.MethodUtil;
+import com.jsalpha.utils.servlet.annotation.MyParam;
+import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
 import com.jsalpha.utils.utils.ClassOfPackageLoader;
 
 import javax.servlet.ServletConfig;
@@ -167,10 +170,11 @@ public class DispatcherServlet extends HttpServlet {
 
         // 通过当前的path获取handlerMap的方法名
         Method method = handlerMap.get(path);
-        getParams(method,req);
+//        Object[] params = getParams(method,req,resp);
+        Object[] params = MethodUtil.getParamMethod(req,resp,method);
         String s =null;
         try {
-            s = (String) method.invoke(method.getDeclaringClass().newInstance(),null);
+            s = (String) method.invoke(method.getDeclaringClass().newInstance(),params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -200,16 +204,42 @@ public class DispatcherServlet extends HttpServlet {
 //            e.printStackTrace();
 //        }
     }
-    public Object[] getParams(Method method, HttpServletRequest req){
+    public Object[] getParams(Method method, HttpServletRequest req, HttpServletResponse resp){
         Object[] params;
-        Type[] types = method.getGenericParameterTypes();
+        Class<?>[] classes = method.getParameterTypes();
         Annotation[][] annotations = method.getParameterAnnotations();
-        if(types.length>0){
-            for(Type type : types){
+        if(null != annotations && annotations.length>0){
+            for(Annotation annotation : annotations[0]){
+                ((MyParam)annotation).value();
+            }
+        }
+        String[] paramNames = MethodUtil.getParamNameMethod(method);
+        if(classes.length>0){
+            for(Class type : classes){
+                if(type.getName() == req.getClass().getName()){
+                    System.out.println("1对了");
+                }
+                if(type.getName() == req.getClass().getGenericSuperclass().getTypeName()){
+                    System.out.println("2对了");
+                }
+//                if(type. == req.getClass()){
+//                    System.out.println("3对了");
+//                }
+                System.out.println(type.getName());
+                System.out.println(req.getClass().getName());
+                System.out.println(HttpServletRequest.class);
+                System.out.println(HttpServletRequest.class.getName());
+                System.out.println(req.getClass().getGenericSuperclass().getTypeName());
                 String t = type.getTypeName();
                 System.out.println(t);
-                System.out.println(t.getClass());
+                System.out.println(t.getClass().getName());
+                Enumeration paramList = req.getParameterNames();
+                while(paramList.hasMoreElements()){
+                    Object o = paramList.nextElement();
+                    System.out.println(o.toString());
+                }
             }
+
         }
         return new Object[0];
     }

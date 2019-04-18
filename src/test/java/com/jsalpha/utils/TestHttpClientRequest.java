@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TestHttpClientRequest {
     @Test
@@ -26,7 +27,10 @@ public class TestHttpClientRequest {
         String data;
         HttpClientRequest httpClientRequest = new HttpClientRequest();
         try {
-            data = httpClientRequest.postJson("http://localhost:8187/examination/student/execute",null,"");
+            Map<String,String> param = new HashMap<>();
+            param.put("1","dengjignsi");
+            String body = "请求体";
+            data = httpClientRequest.postJson("http://localhost:8686/hello",param,body);
             System.out.println(data);
         } catch (IOException e) {
             e.printStackTrace();
