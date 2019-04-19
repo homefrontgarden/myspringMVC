@@ -1,10 +1,10 @@
 package com.jsalpha.utils.servlet;
 
-import com.jsalpha.utils.common.AnnotationUtil;
 import com.jsalpha.utils.common.ClassUtil;
 import com.jsalpha.utils.common.MethodUtil;
 import com.jsalpha.utils.servlet.annotation.MyController;
 import com.jsalpha.utils.servlet.annotation.MyParam;
+import com.jsalpha.utils.servlet.annotation.MyQualifier;
 import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
 import com.jsalpha.utils.utils.ClassOfPackageLoader;
 
@@ -17,6 +17,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -61,7 +62,7 @@ public class DispatcherServlet extends HttpServlet {
 
         // 1.扫描需要的实例化的类
         try {
-            doScanPackage("com.jsalpha.utils.controller");
+            doScanPackage("com.jsalpha.utils");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -81,7 +82,11 @@ public class DispatcherServlet extends HttpServlet {
         }
 
         // 3.将IOC容器中的service对象设置给controller层定义的field上
-//        doIoc();
+        try {
+            doIoc();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         // 4.建立path与method的映射关系
         handlerMapping();
@@ -90,12 +95,45 @@ public class DispatcherServlet extends HttpServlet {
             System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
         }
     }
+
+    /**
+     * 依赖注入
+     * @throws IllegalAccessException
+     */
+    public void doIoc() throws IllegalAccessException {
+        Field[] fields;
+        Annotation a;
+        String name;
+        Object fieldValue;
+        Object bean;
+        for(Map.Entry<String,Object> aliasBean : aliasBeans.entrySet()){
+            bean = aliasBean.getValue();
+            fields = bean.getClass().getDeclaredFields();
+//            fields = getFields(bean);
+            for(Field field : fields){
+                a = field.getAnnotation(MyQualifier.class);
+                if(null != a){
+                    name = ((MyQualifier) a).value();
+                    fieldValue = aliasBeans.get(name);
+                    field.setAccessible(true);
+                    field.set(bean,fieldValue);
+                }
+            }
+        }
+    }
+    public <T> Field[] getFields(T object){
+        return object.getClass().getDeclaredFields();
+    }
     /**
      * 实例化扫描到的类
      */
     public void doInstance() throws ClassNotFoundException {
         for(String className : classNames){
-            ClassUtil.addBean(aliasBeans,className);
+            ClassUtil.addControllerBean(aliasBeans,className);
+            beans.put(className,Class.forName(className));
+        }
+        for(String className : classNames){
+            ClassUtil.addServiceBean(aliasBeans,className);
             beans.put(className,Class.forName(className));
         }
     }
@@ -111,13 +149,28 @@ public class DispatcherServlet extends HttpServlet {
     }
     public void handlerMapping(){
         Method[] methods = null;
+        Set<Method> methodList = new HashSet<>();
+        Annotation myController;
         for(Class c : classes){
             methods = c.getMethods();
+            methodList.addAll(filterReuqestMethod(methods));
+            myController = c.getAnnotation(MyController.class);
+            if(null != myController) {
+                setPathMethod("/"+((MyController)myController).value(), methodList);
+            }
         }
-        List<Method> methodList = filterReuqestMethod(methods);
-        setPathMethod(methodList);
+//        setPathMethod(methodList);
     }
-    public void setPathMethod(List<Method> methods){
+    public void setPathMethod(String value, Set<Method> methods){
+        MyRequestMapping annotation;
+        String url;
+        for(Method method : methods){
+            annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
+            url = annotation.value();
+            handlerMap.put(value+url,method);
+        }
+    }
+    public void setPathMethod(Set<Method> methods){
         MyRequestMapping annotation;
         String url;
         for(Method method : methods){
@@ -176,14 +229,13 @@ public class DispatcherServlet extends HttpServlet {
         Method method = handlerMap.get(path);
 //        Object[] params = getParams(method,req,resp);
         Object[] params = MethodUtil.getParamMethod(req,resp,method);
+        Object o = aliasBeans.get(path.split("/")[1]);
         String s =null;
         try {
-            s = (String) method.invoke(method.getDeclaringClass().newInstance(),params);
+            s = (String) method.invoke(o,params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
             e.printStackTrace();
         }
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());

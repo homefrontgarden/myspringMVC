@@ -1,6 +1,7 @@
 package com.jsalpha.utils.common;
 
 import com.jsalpha.utils.servlet.annotation.MyController;
+import com.jsalpha.utils.servlet.annotation.MyService;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -11,7 +12,6 @@ import java.util.Map;
 /**
  * Class工具类
  */
-@MyController("aa")
 public class ClassUtil {
     public static Object filterClass(String className,Annotation annotation) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class c = getClass(className);
@@ -29,9 +29,9 @@ public class ClassUtil {
      * @param className
      * @throws ClassNotFoundException
      */
-    public static void addBean(Map<String,Object> beanMap, String className) throws ClassNotFoundException {
+    public static void addBean(Map<String,Object> beanMap, String className, Class<?> annotationClass) throws ClassNotFoundException {
         Class c = getClass(className);
-        Annotation a =c.getAnnotation(MyController.class);
+        Annotation a =c.getAnnotation(annotationClass);
         if(null != a){
             String key = null;
             try {
@@ -51,6 +51,33 @@ public class ClassUtil {
                 }
             }
         }
+    }
+    public static void addServiceBean(Map<String,Object> beanMap, String className) throws ClassNotFoundException {
+        addBean(beanMap,className,MyService.class);
+    }
+    public static void addControllerBean(Map<String,Object> beanMap, String className) throws ClassNotFoundException {
+        addBean(beanMap,className,MyController.class);
+//        Class c = getClass(className);
+//        Annotation a =c.getAnnotation(MyController.class);
+//        if(null != a){
+//            String key = null;
+//            try {
+//                key = AnnotationUtil.getAnnotationValue(a);
+//            } catch (InvocationTargetException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//            if(null != key){
+//                try {
+//                    beanMap.put(key,c.newInstance());
+//                } catch (InstantiationException e) {
+//                    e.printStackTrace();
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
     }
     public static String getAliasClass(Class c){
         return "";
