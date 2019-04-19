@@ -179,15 +179,6 @@ public class DispatcherServlet extends HttpServlet {
         }
     }
     /**
-     * 每一次请求将会调用doGet或doPost方法，它会根据url请求去HandlerMapping中匹配到对应的Method，然后利用反射机制调用Controller中的url对应的方法，并得到结果返回。按顺序包括以下功能：
-     *
-     *     获取请求传入的参数并处理参数
-     *     通过初始化好的handlerMapping中拿出url对应的方法名，反射调用
-     * ---------------------
-     * 作者：伍婷
-     * 来源：CSDN
-     * 原文：https://blog.csdn.net/chyanwu68/article/details/81096910
-     * 版权声明：本文为博主原创文章，转载请附上博文链接！
      * @param req
      * @param resp
      * @throws ServletException
@@ -195,27 +186,33 @@ public class DispatcherServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
         System.out.println("doGet()............");
         this.doPost(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
         System.out.println("doPost()............");
 
         // 通过req获取请求的uri
         String uri = req.getRequestURI();
 
-        //替换掉项目目录
+        // 替换掉项目目录
         String context = req.getContextPath();
         String path = uri.replaceAll(context, "");
 
-        // 通过当前的path获取handlerMap的方法名
+        // 通过当前的path获取handlerMap的方法
         Method method = handlerMap.get(path);
+
+        // 从请求与相应参数，获取method的形参参数
         Object[] params = MethodUtil.getParamMethod(req,resp,method);
+
+        // 通过method反向获取调用此method的实例对象
         Object o = classNameOBject.get(method.getDeclaringClass().getName());
+
+        //通过反射执行method方法
         String s =null;
         try {
             s = (String) method.invoke(o,params);
@@ -224,6 +221,8 @@ public class DispatcherServlet extends HttpServlet {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+
+        //返回相应结果
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
         bufferedWriter.write(s);
