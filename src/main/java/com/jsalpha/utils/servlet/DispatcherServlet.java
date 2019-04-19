@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -30,6 +31,7 @@ import java.util.*;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
+    private final static String initFileName = "init.properties";
     /**
      * 扫描到的所有类名
      */
@@ -46,6 +48,7 @@ public class DispatcherServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         System.out.println("init()............");
+        getPackageNames(config);
         // 1.扫描需要的实例化的类
         try {
             doScanPackage("com.jsalpha.utils");
@@ -85,7 +88,18 @@ public class DispatcherServlet extends HttpServlet {
         //5.收集实例化，并且已经依赖注入完成的对象
         collcetClassObject();
     }
-
+    public void getPackageNames(ServletConfig config){
+        String init = config.getInitParameter(initFileName);
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(init);
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String packageName = properties.getProperty("package");
+        System.out.println(packageName);
+    }
     /**
      * 依赖注入
      * @throws IllegalAccessException
