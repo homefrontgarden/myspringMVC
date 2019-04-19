@@ -1,6 +1,9 @@
 package com.jsalpha.utils.servlet;
 
+import com.jsalpha.utils.common.AnnotationUtil;
+import com.jsalpha.utils.common.ClassUtil;
 import com.jsalpha.utils.common.MethodUtil;
+import com.jsalpha.utils.servlet.annotation.MyController;
 import com.jsalpha.utils.servlet.annotation.MyParam;
 import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
 import com.jsalpha.utils.utils.ClassOfPackageLoader;
@@ -16,7 +19,6 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.*;
 
@@ -39,6 +41,7 @@ public class DispatcherServlet extends HttpServlet {
      * 类名对应的对象
      */
     private Map<String,Object> beans = new HashMap<>();
+    private Map<String,Object> aliasBeans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
     public void run(ServletConfig config){
         Enumeration e = config.getInitParameterNames();
@@ -92,6 +95,7 @@ public class DispatcherServlet extends HttpServlet {
      */
     public void doInstance() throws ClassNotFoundException {
         for(String className : classNames){
+            ClassUtil.addBean(aliasBeans,className);
             beans.put(className,Class.forName(className));
         }
     }
@@ -186,6 +190,8 @@ public class DispatcherServlet extends HttpServlet {
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
         bufferedWriter.write(s);
         bufferedWriter.flush();
+        outputStreamWriter.close();
+        bufferedWriter.close();
 //        // 获取beans容器中的bean
 //        MyController instance = (MyController) beans.get("/" + path.split("/")[1]);
 //

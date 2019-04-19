@@ -33,40 +33,32 @@ public class MethodUtil {
         }
         return new String[0];
     }
+
+    /**
+     * 通过请求参数request，相应参数response，以及方法反射对象method，获得method形参对象
+     * @param request
+     * @param response
+     * @param method
+     * @return
+     */
     public static Object[] getParamMethod(HttpServletRequest request, HttpServletResponse response, Method method){
         Class<?>[] classes = method.getParameterTypes();
         String[] paramNames = getParamNameMethod(method);
         int index = 0;
         if(classes.length>0){
-            if(classes.length == paramNames.length){
-                Object[] params = new Object[classes.length];
-                for(String paramName : paramNames){
-                    if(null != paramName) {
-                        params[index] = request.getParameter(paramName);
-                    }else if(classes[index].getName().equals(HttpServletRequest.class.getName())){
-                        params[index] = request;
-                    }else if(classes[index].getName().equals(HttpServletResponse.class.getName())){
-                        params[index] = response;
-                    }
-                    index ++;
+            Object[] params = new Object[classes.length];
+            for(String paramName : paramNames){
+                if(null != paramName) {
+                    params[index] = request.getParameter(paramName);
+                }else if(classes[index].getName().equals(HttpServletRequest.class.getName())){
+                    params[index] = request;
+                }else if(classes[index].getName().equals(HttpServletResponse.class.getName())){
+                    params[index] = response;
                 }
-                return params;
-            }else{
-                Object[] params = new Object[classes.length];
-                int paramIndex = 0;
-                for(Class c : classes){
-                    if(c.getName().equals(HttpServletRequest.class.getName())){
-                        params[index++] = request;
-                    }else if(c.getName().equals(HttpServletResponse.class.getName())){
-                        params[index++] = response;
-                    }else{
-                        params[index++] = request.getParameter(paramNames[paramIndex++]);
-                    }
-                }
-                return params;
+                index ++;
             }
-        }else {
-            return new Object[0];
+            return params;
         }
+        return new Object[0];
     }
 }
