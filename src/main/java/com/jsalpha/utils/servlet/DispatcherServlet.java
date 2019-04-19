@@ -2,8 +2,6 @@ package com.jsalpha.utils.servlet;
 
 import com.jsalpha.utils.common.ClassUtil;
 import com.jsalpha.utils.common.MethodUtil;
-import com.jsalpha.utils.servlet.annotation.MyController;
-import com.jsalpha.utils.servlet.annotation.MyParam;
 import com.jsalpha.utils.servlet.annotation.MyQualifier;
 import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
 import com.jsalpha.utils.utils.ClassOfPackageLoader;
@@ -20,7 +18,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -44,22 +41,11 @@ public class DispatcherServlet extends HttpServlet {
     private Map<String,Object> beans = new HashMap<>();
     private Map<String,Object> aliasBeans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
-    public void run(ServletConfig config){
-        Enumeration e = config.getInitParameterNames();
-        List<String> params = new ArrayList<>();
-        while(e.hasMoreElements()){
-            params.add(e.nextElement().toString());
-        }
-        for(String param : params){
-        String s = config.getInitParameter(param);
-        System.out.println(s);
-        }
-    }
+    private Map<String,Object> classNameOBject = new HashMap<>();
+
     @Override
     public void init(ServletConfig config) throws ServletException {
-        run(config);
         System.out.println("init()............");
-
         // 1.扫描需要的实例化的类
         try {
             doScanPackage("com.jsalpha.utils");
@@ -70,7 +56,8 @@ public class DispatcherServlet extends HttpServlet {
         for(String name: classNames) {
             System.out.println(name);
         }
-//        // 2.实例化
+
+        // 2.实例化
         try {
             doInstance();
         } catch (ClassNotFoundException e) {
@@ -94,6 +81,9 @@ public class DispatcherServlet extends HttpServlet {
         for(Map.Entry<String, Method> map: handlerMap.entrySet()) {
             System.out.println("key:" + map.getKey() + "; value:" + map.getValue());
         }
+
+        //5.收集实例化，并且已经依赖注入完成的对象
+        collcetClassObject();
     }
 
     /**
@@ -109,7 +99,6 @@ public class DispatcherServlet extends HttpServlet {
         for(Map.Entry<String,Object> aliasBean : aliasBeans.entrySet()){
             bean = aliasBean.getValue();
             fields = bean.getClass().getDeclaredFields();
-//            fields = getFields(bean);
             for(Field field : fields){
                 a = field.getAnnotation(MyQualifier.class);
                 if(null != a){
@@ -121,9 +110,7 @@ public class DispatcherServlet extends HttpServlet {
             }
         }
     }
-    public <T> Field[] getFields(T object){
-        return object.getClass().getDeclaredFields();
-    }
+
     /**
      * 实例化扫描到的类
      */
@@ -154,12 +141,11 @@ public class DispatcherServlet extends HttpServlet {
         for(Class c : classes){
             methods = c.getMethods();
             methodList.addAll(filterReuqestMethod(methods));
-            myController = c.getAnnotation(MyController.class);
+            myController = c.getAnnotation(MyRequestMapping.class);
             if(null != myController) {
-                setPathMethod("/"+((MyController)myController).value(), methodList);
+                setPathMethod(((MyRequestMapping)myController).value(), methodList);
             }
         }
-//        setPathMethod(methodList);
     }
     public void setPathMethod(String value, Set<Method> methods){
         MyRequestMapping annotation;
@@ -168,15 +154,6 @@ public class DispatcherServlet extends HttpServlet {
             annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
             url = annotation.value();
             handlerMap.put(value+url,method);
-        }
-    }
-    public void setPathMethod(Set<Method> methods){
-        MyRequestMapping annotation;
-        String url;
-        for(Method method : methods){
-            annotation = method.getDeclaredAnnotation(MyRequestMapping.class);
-            url = annotation.value();
-            handlerMap.put(url,method);
         }
     }
 
@@ -190,6 +167,16 @@ public class DispatcherServlet extends HttpServlet {
             }
         }
         return methodList;
+    }
+    /**
+     * 收集需要管理的实例化对象
+     */
+    public void collcetClassObject(){
+        String className;
+        for(Map.Entry<String,Object> entry : aliasBeans.entrySet()){
+            className = entry.getValue().getClass().getName();
+            classNameOBject.put(className,entry.getValue());
+        }
     }
     /**
      * 每一次请求将会调用doGet或doPost方法，它会根据url请求去HandlerMapping中匹配到对应的Method，然后利用反射机制调用Controller中的url对应的方法，并得到结果返回。按顺序包括以下功能：
@@ -218,18 +205,17 @@ public class DispatcherServlet extends HttpServlet {
             throws ServletException, IOException {
         System.out.println("doPost()............");
 
-        // 通过req获取请求的uri /maven_handmvc/custom/query
+        // 通过req获取请求的uri
         String uri = req.getRequestURI();
 
-        // /maven_handmvc 替换掉项目目录
+        //替换掉项目目录
         String context = req.getContextPath();
         String path = uri.replaceAll(context, "");
 
         // 通过当前的path获取handlerMap的方法名
         Method method = handlerMap.get(path);
-//        Object[] params = getParams(method,req,resp);
         Object[] params = MethodUtil.getParamMethod(req,resp,method);
-        Object o = aliasBeans.get(path.split("/")[1]);
+        Object o = classNameOBject.get(method.getDeclaringClass().getName());
         String s =null;
         try {
             s = (String) method.invoke(o,params);
@@ -244,68 +230,7 @@ public class DispatcherServlet extends HttpServlet {
         bufferedWriter.flush();
         outputStreamWriter.close();
         bufferedWriter.close();
-//        // 获取beans容器中的bean
-//        MyController instance = (MyController) beans.get("/" + path.split("/")[1]);
-//
-//        // 处理参数
-//        HandlerAdapterService ha = (HandlerAdapterService) beans.get("customHandlerAdapter");
-//        Object[] args = ha.handle(req, resp, method, beans);
-//
-//        // 通过反射来实现方法的调用
-//        try {
-//            method.invoke(instance, args);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        } catch (IllegalArgumentException e) {
-//            e.printStackTrace();
-//        } catch (InvocationTargetException e) {
-//            e.printStackTrace();
-//        }
-    }
-    public Object[] getParams(Method method, HttpServletRequest req, HttpServletResponse resp){
-        Object[] params;
-        Class<?>[] classes = method.getParameterTypes();
-        Annotation[][] annotations = method.getParameterAnnotations();
-        if(null != annotations && annotations.length>0){
-            for(Annotation annotation : annotations[0]){
-                ((MyParam)annotation).value();
-            }
-        }
-        String[] paramNames = MethodUtil.getParamNameMethod(method);
-        if(classes.length>0){
-            for(Class type : classes){
-                if(type.getName() == req.getClass().getName()){
-                    System.out.println("1对了");
-                }
-                if(type.getName() == req.getClass().getGenericSuperclass().getTypeName()){
-                    System.out.println("2对了");
-                }
-//                if(type. == req.getClass()){
-//                    System.out.println("3对了");
-//                }
-                System.out.println(type.getName());
-                System.out.println(req.getClass().getName());
-                System.out.println(HttpServletRequest.class);
-                System.out.println(HttpServletRequest.class.getName());
-                System.out.println(req.getClass().getGenericSuperclass().getTypeName());
-                String t = type.getTypeName();
-                System.out.println(t);
-                System.out.println(t.getClass().getName());
-                Enumeration paramList = req.getParameterNames();
-                while(paramList.hasMoreElements()){
-                    Object o = paramList.nextElement();
-                    System.out.println(o.toString());
-                }
-            }
 
-        }
-        return new Object[0];
     }
-    public static void main(String[] args){
-        Thread thread = Thread.currentThread();
-        ClassLoader classLoader = thread.getContextClassLoader();
-        URL url = classLoader.getResource("");
-        String path = url.getPath();
-        System.out.println(path);
-    }
+
 }

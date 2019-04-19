@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
  * 对外接口类
  */
 @MyController("homeController")
+@MyRequestMapping("/home")
 public class HomeController {
     @MyQualifier("homeService")
     private HomeService homeService;
