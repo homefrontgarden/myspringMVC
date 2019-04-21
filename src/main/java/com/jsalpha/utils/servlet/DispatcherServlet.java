@@ -31,27 +31,28 @@ import java.util.*;
  * @author dengjingsi
  */
 public class DispatcherServlet extends HttpServlet {
-    private final static String initFileName = "init.properties";
+    private final static String initFileName = "contextConfigLocation";
     /**
      * 扫描到的所有类名
      */
-    private LinkedList<String> classNames;
-    private List<Class<?>> classes;
+    private LinkedList<String> classNames = new LinkedList<>();
+    private List<Class<?>> classes = new ArrayList<>();
     /**
      * 类名对应的对象
      */
     private Map<String,Object> beans = new HashMap<>();
     private Map<String,Object> aliasBeans = new HashMap<>();
     private Map<String,Method> handlerMap = new HashMap<>();
-    private Map<String,Object> classNameOBject = new HashMap<>();
+    private Map<String,Object> classNameObject = new HashMap<>();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         System.out.println("init()............");
-        getPackageNames(config);
+        String[] packageNames = getPackageNames(config);
         // 1.扫描需要的实例化的类
         try {
-            doScanPackage("com.jsalpha.utils");
+            doScanPackage(packageNames);
+//            doScanPackage("com.jsalpha.utils");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -88,17 +89,17 @@ public class DispatcherServlet extends HttpServlet {
         //5.收集实例化，并且已经依赖注入完成的对象
         collcetClassObject();
     }
-    public void getPackageNames(ServletConfig config){
+    public String[] getPackageNames(ServletConfig config){
         String init = config.getInitParameter(initFileName);
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(init);
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(init.split(":")[1]);
         Properties properties = new Properties();
         try {
             properties.load(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String packageName = properties.getProperty("package");
-        System.out.println(packageName);
+        String packageNames = properties.getProperty("package");
+        return packageNames.split(";");
     }
     /**
      * 依赖注入
@@ -148,8 +149,18 @@ public class DispatcherServlet extends HttpServlet {
             classes.add(classOfPackageLoader.loadClass(className));
         }
     }
+    public void doScanPackage(String[] packageNames) throws ClassNotFoundException {
+        String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+        ClassOfPackageLoader classOfPackageLoader = new ClassOfPackageLoader();
+        for(String packageName : packageNames){
+            classOfPackageLoader.collectClassOfPackageInner(path,packageName,classNames);
+        }
+        for(String className : classNames){
+            classes.add(classOfPackageLoader.loadClass(className));
+        }
+    }
     public void handlerMapping(){
-        Method[] methods = null;
+        Method[] methods ;
         Set<Method> methodList = new HashSet<>();
         Annotation myController;
         for(Class c : classes){
@@ -189,7 +200,7 @@ public class DispatcherServlet extends HttpServlet {
         String className;
         for(Map.Entry<String,Object> entry : aliasBeans.entrySet()){
             className = entry.getValue().getClass().getName();
-            classNameOBject.put(className,entry.getValue());
+            classNameObject.put(className,entry.getValue());
         }
     }
     /**
@@ -224,12 +235,12 @@ public class DispatcherServlet extends HttpServlet {
         Object[] params = MethodUtil.getParamMethod(req,resp,method);
 
         // 通过method反向获取调用此method的实例对象
-        Object o = classNameOBject.get(method.getDeclaringClass().getName());
+        Object o = classNameObject.get(method.getDeclaringClass().getName());
 
         //通过反射执行method方法
-        String s =null;
+        Object s =null;
         try {
-            s = (String) method.invoke(o,params);
+            s = method.invoke(o,params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -239,7 +250,7 @@ public class DispatcherServlet extends HttpServlet {
         //返回相应结果
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(resp.getOutputStream());
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-        bufferedWriter.write(s);
+        bufferedWriter.write(s.toString());
         bufferedWriter.flush();
         outputStreamWriter.close();
         bufferedWriter.close();
