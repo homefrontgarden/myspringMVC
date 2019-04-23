@@ -1,6 +1,6 @@
-package com.jsalpha.utils.controller;
+package com.jsalpha.controller;
 
-import com.jsalpha.utils.service.HomeService;
+import com.jsalpha.service.HomeService;
 import com.jsalpha.utils.servlet.annotation.MyController;
 import com.jsalpha.utils.servlet.annotation.MyParam;
 import com.jsalpha.utils.servlet.annotation.MyQualifier;

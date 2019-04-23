@@ -1,4 +1,4 @@
-package com.jsalpha.utils.utils;
+package com.jsalpha.utils.common;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

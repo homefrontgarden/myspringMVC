@@ -1,4 +1,4 @@
-package com.jsalpha.utils.service;
+package com.jsalpha.service;
 
 import com.jsalpha.utils.servlet.annotation.MyService;
 
