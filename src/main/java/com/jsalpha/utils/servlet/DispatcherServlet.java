@@ -4,7 +4,7 @@ import com.jsalpha.utils.common.ClassUtil;
 import com.jsalpha.utils.common.MethodUtil;
 import com.jsalpha.utils.servlet.annotation.MyQualifier;
 import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
-import com.jsalpha.utils.utils.ClassOfPackageLoader;
+import com.jsalpha.utils.load.ClassOfPackageLoader;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -52,7 +52,6 @@ public class DispatcherServlet extends HttpServlet {
         // 1.扫描需要的实例化的类
         try {
             doScanPackage(packageNames);
-//            doScanPackage("com.jsalpha.utils");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
