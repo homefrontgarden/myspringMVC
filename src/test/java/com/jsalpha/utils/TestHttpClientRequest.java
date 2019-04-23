@@ -31,7 +31,7 @@ public class TestHttpClientRequest {
             param.put("1","dengjignsi");
             param.put("s","gansha");
             String body = "请求体";
-            data = httpClientRequest.postJson("http://localhost:8686/homeController/hello",param,body);
+            data = httpClientRequest.postJson("http://localhost:8686/home/hello",param,body);
             System.out.println(data);
         } catch (IOException e) {
             e.printStackTrace();
