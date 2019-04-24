@@ -1,11 +1,14 @@
 package com.jsalpha.utils.common;
 
 import com.jsalpha.utils.annotation.MyParam;
+import com.jsalpha.utils.annotation.MyRequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 操作反射方法工具类
@@ -60,5 +63,21 @@ public class MethodUtil {
             return params;
         }
         return new Object[0];
+    }
+    /**
+     * 过滤并获取methods中，MyRequestMapping注解修饰的方法
+     * @param methods
+     * @return
+     */
+    public static <T extends Annotation> List<Method> filterReuqestMethod(Method[] methods, Class<T> c){
+        List<Method> methodList = new ArrayList<>();
+        Annotation annotation;
+        for(Method method : methods){
+            annotation = method.getAnnotation(c);
+            if(null != annotation){
+                methodList.add(method);
+            }
+        }
+        return methodList;
     }
 }

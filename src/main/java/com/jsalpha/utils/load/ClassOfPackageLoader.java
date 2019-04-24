@@ -38,7 +38,7 @@ public class ClassOfPackageLoader {
     public void collectClassOfPackageInner(String path,String packageName,LinkedList<String> classes){
         String packagePath = packageName.replace(".",File.separator);
         File f = new File(path+File.separator+packagePath);
-        String[] fileNames = null;
+        String[] fileNames ;
         if(f.exists()){
             //获取该路径下所有的.class类文件
             fileNames = f.list(new SuffixFilenameFilter());
