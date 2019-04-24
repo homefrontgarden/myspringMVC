@@ -2,8 +2,8 @@ package com.jsalpha.utils.servlet;
 
 import com.jsalpha.utils.common.ClassUtil;
 import com.jsalpha.utils.common.MethodUtil;
-import com.jsalpha.utils.servlet.annotation.MyQualifier;
-import com.jsalpha.utils.servlet.annotation.MyRequestMapping;
+import com.jsalpha.utils.annotation.MyQualifier;
+import com.jsalpha.utils.annotation.MyRequestMapping;
 import com.jsalpha.utils.load.ClassOfPackageLoader;
 
 import javax.servlet.ServletConfig;

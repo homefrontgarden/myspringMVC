@@ -1,4 +1,4 @@
-package com.jsalpha.utils.servlet.annotation;
+package com.jsalpha.utils.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,10 +7,14 @@ import java.lang.annotation.Target;
 
 /**
  * @author dengjingsi
- * 修饰service类的注解
+ * controller用的注解
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface MyService {
+public @interface MyController {
+    /**
+     * 提供注释controller类的别名值
+     * @return 返回注解类的别名
+     */
     String value();
 }

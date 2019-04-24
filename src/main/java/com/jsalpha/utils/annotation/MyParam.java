@@ -1,4 +1,4 @@
-package com.jsalpha.utils.servlet.annotation;
+package com.jsalpha.utils.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,14 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 依赖注入依赖次注解的运用
  * @author dengjingsi
+ * 方法参数注解
  */
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface MyQualifier {
+@Target(ElementType.PARAMETER)
+public @interface MyParam {
     /**
-     * 通过此value的值，注入相对应的对象
+     * 修饰形参的别名的值
      * @return
      */
     String value();

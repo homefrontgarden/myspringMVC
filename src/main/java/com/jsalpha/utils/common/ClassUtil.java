@@ -1,7 +1,7 @@
 package com.jsalpha.utils.common;
 
-import com.jsalpha.utils.servlet.annotation.MyController;
-import com.jsalpha.utils.servlet.annotation.MyService;
+import com.jsalpha.utils.annotation.MyController;
+import com.jsalpha.utils.annotation.MyService;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
+ * @author dengjingsi
  * Class工具类
  */
 public class ClassUtil {

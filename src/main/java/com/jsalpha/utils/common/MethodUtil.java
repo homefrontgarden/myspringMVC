@@ -1,6 +1,6 @@
 package com.jsalpha.utils.common;
 
-import com.jsalpha.utils.servlet.annotation.MyParam;
+import com.jsalpha.utils.annotation.MyParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
