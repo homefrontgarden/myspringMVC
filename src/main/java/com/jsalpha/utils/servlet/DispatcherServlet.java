@@ -20,17 +20,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-
-/**
- * 在DispatcherServlet类中，实现下面几个步骤：
- *
- *     加载配置类
- *     扫描当前项目下的所有文件
- *     拿到扫描到的类，通过反射机制，实例化。并且放到ioc容器中(Map的键值对) beans
- *     初始化path与方法的映射
- * @author dengjingsi
- */
-
 /**
  * 实现springMVC的servlet
  * 1.通过配置文件扫描需要依赖注入包（packageNames）
