@@ -7,6 +7,7 @@
   <servlet>
     <servlet-name>controller</servlet-name>
     <servlet-class>com.jsalpha.utils.servlet.DispatcherServlet</servlet-class>
+    <!--需要依赖注入的package的配置，我这里边参数名用的contextConfigLocation，必须用它，因为我的DispatcherServlet里边写固定了-->
       <init-param>
           <param-name>contextConfigLocation</param-name>
           <param-value>classpath:init.properties</param-value>
