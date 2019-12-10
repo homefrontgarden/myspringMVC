@@ -1,9 +1,5 @@
 package com.jsalpha.utils.common;
 
-/**
- * 数学工具类
- * @author dengjingsi
- */
 public class MathUtil {
     /**
      * 返回a,b的最大公约数
@@ -55,8 +51,34 @@ public class MathUtil {
         specific [1] = b/divissor;
         return specific;
     }
+    /**
+     * 根据mun获取一个不小于1的数，如果mun >1 ，返回一个等于mun的数，反之返回Integer.MAX_VALUE
+     * @param mun
+     * @return
+     */
+    public static int generateMaxLimit(int mun){
+        return mun < 1 ? Integer.MAX_VALUE : mun;
+    }
+    /**
+     * 判断longParam与stringParam的字面类型值是否相等
+     * @param longParam
+     * @param stringParam
+     * @return
+     */
+    public static boolean paramEquals(long longParam,String stringParam){
+        return String.valueOf(longParam).equals(stringParam);
+    }
+
+    /**
+     * 计算a,b的商，商采取进一法取值
+     * @param a 被除数
+     * @param b 除数
+     * @return 返回a与b的商
+     */
+    public static int quotientCeil(int a,int b){
+        return a%b > 0 ? a/b +1 : a/b;
+    }
     public static void main(String[] args){
         System.out.println(highestCommonDivissor(2,3));
     }
 }
-
